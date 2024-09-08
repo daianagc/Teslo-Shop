@@ -6,7 +6,10 @@ import { inter } from "@/config/fonts"; //El @ es sinónimo del root de mi aplic
 // const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Teslo | Shop ",
+  title: {
+    template: "%s - Teslo | Shop",
+    default: "Home - Teslo | Shop",
+  },
   description: "Una tienda virtual de productos",
 };
 
