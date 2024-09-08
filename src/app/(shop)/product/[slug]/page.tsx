@@ -1,11 +1,12 @@
 export const revalidate = 604800; // 7 días
 
-import { getProductBySlug } from "@/actions";
+import { getProductBySlug } from "@/actions/product/get-product-by-slug";
 import {
   ProductMobileSlideshow,
   ProductSlideshow,
   QuantitySelector,
   SizeSelector,
+  StockLabel,
 } from "@/components";
 import { titleFont } from "@/config/fonts";
 // import { initialData } from "@/seed/seed";
@@ -47,9 +48,7 @@ export default async function ProductPage({ params }: Props) {
 
       {/* Detalles */}
       <div className="col-span-1 px-5">
-        <h1 className={`${titleFont.className} antialiased font-bold text-xl`}>
-          Stock: {product.inStock}
-        </h1>
+        <StockLabel slug={product.slug} />
         <h1 className={`${titleFont.className} antialiased font-bold text-xl`}>
           {product.title}
         </h1>
