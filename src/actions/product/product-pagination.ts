@@ -10,9 +10,9 @@ interface PaginationOptions {
 }
 
 export const getPaginatedProductsWithImages = async ({
-  page = 1,
-  take = 12,
-  gender,
+  page = 1, //numero de paginas por defecto es 1
+  take = 12, //Número de productos a tomar por página, por defecto es 12
+  gender, // Filtro opcional para el género de los productos.
 }: PaginationOptions) => {
   if (isNaN(Number(page))) page = 1;
   if (page < 1) page = 1;

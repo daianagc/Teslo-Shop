@@ -25,7 +25,7 @@ export async function generateMetadata(
   { params }: Props,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  // read route params
+  // Leer parámetros de ruta
   const slug = params.slug;
 
   // fetch data
