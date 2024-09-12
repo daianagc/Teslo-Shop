@@ -11,6 +11,20 @@ export const authConfig: NextAuthConfig = {
   },
 
   callbacks: {
+    authorized({ auth, request: { nextUrl } }) {
+      console.log({ auth });
+      // const isLoggedIn = !!auth?.user;
+
+      // const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
+      // if (isOnDashboard) {
+      //   if (isLoggedIn) return true;
+      //   return false; // Redirect unauthenticated users to login page
+      // } else if (isLoggedIn) {
+      //   return Response.redirect(new URL("/dashboard", nextUrl));
+      // }
+      return true;
+    },
+
     jwt({ token, user }) {
       if (user) {
         token.data = user;
@@ -19,7 +33,7 @@ export const authConfig: NextAuthConfig = {
     },
     session({ session, token, user }) {
       console.log({ session, token, user });
-      session.user = token.data as any;
+      session.user = token.data as never;
 
       return session;
     },
