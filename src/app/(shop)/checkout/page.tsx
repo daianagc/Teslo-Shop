@@ -1,8 +1,8 @@
-/* eslint-disable react/no-unescaped-entities */
-import { Title } from "@/components";
+import Link from "next/link";
+
+import { QuantitySelector, Title } from "@/components";
 import { initialData } from "@/seed/seed";
 import Image from "next/image";
-import Link from "next/link";
 
 const productsInCart = [
   initialData.products[0],
@@ -10,7 +10,7 @@ const productsInCart = [
   initialData.products[2],
 ];
 
-export default function CartPage() {
+export default function CheckoutPage() {
   return (
     <div className="flex justify-center items-center mb-72 px-10 sm:px-0">
       <div className="flex flex-col w-[1000px]">
@@ -19,7 +19,7 @@ export default function CartPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
           {/* Carrito */}
           <div className="flex flex-col mt-5">
-            <span className="text-xl">Ajustar elementos seleccionados</span>
+            <span className="text-xl">Ajustar elementos</span>
             <Link href="/cart" className="underline mb-5">
               Editar carrito
             </Link>
@@ -41,28 +41,30 @@ export default function CartPage() {
 
                 <div>
                   <p>{product.title}</p>
-                  <p>${product.price}x 3</p>
-                  <p className="font-bold">Subtotal: ${product.price * 3} </p>
+                  <p>${product.price} x 3</p>
+                  <p className="font-bold">Subtotal: ${product.price * 3}</p>
                 </div>
               </div>
             ))}
           </div>
 
           {/* Checkout - Resumen de orden */}
-          <div className="bg-white rounded-xl shadow-xl p-7 h-fit  ">
-            <h2 className="text-2xl mb-2 font-bold">Dirección de entrega</h2>
+          <div className="bg-white rounded-xl shadow-xl p-7">
+            <h2 className="text-2xl mb-2">Dirección de entrega</h2>
             <div className="mb-10">
-              <p className="text-xl">Daiana Cucco</p>
-              <p>Av. Martinez 1223 </p>
-              <p>Buenos Aires</p>
-              <p>CP 5435</p>
-              <p>123.345.645</p>
+              <p className="text-xl">Fernando Herrera</p>
+              <p>Av. Siempre viva 123</p>
+              <p>Col. Centro</p>
+              <p>Alcaldía Cuauhtémoc</p>
+              <p>Ciudad de México</p>
+              <p>CP 123123</p>
+              <p>123.123.123</p>
             </div>
 
             {/* Divider */}
             <div className="w-full h-0.5 rounded bg-gray-200 mb-10" />
 
-            <h2 className="text-2xl mb-2 font-bold">Resumen de orden</h2>
+            <h2 className="text-2xl mb-2">Resumen de orden</h2>
 
             <div className="grid grid-cols-2">
               <span>No. Productos</span>
@@ -82,7 +84,7 @@ export default function CartPage() {
               <p className="mb-5">
                 {/* Disclaimer */}
                 <span className="text-xs">
-                  Al hacer clic en "Colocar orden", aceptas nuestros{" "}
+                  Al hacer clic en &quot;Colocar orden&quot;, aceptas nuestros{" "}
                   <a href="#" className="underline">
                     términos y condiciones
                   </a>{" "}
@@ -97,7 +99,7 @@ export default function CartPage() {
                 className="flex btn-primary justify-center"
                 href="/orders/123"
               >
-                Solicitar orden
+                Colocar orden
               </Link>
             </div>
           </div>
