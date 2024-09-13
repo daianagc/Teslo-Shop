@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { z } from "zod";
-import prisma from "./lib/prisma";
 import bcryptjs from "bcryptjs";
+import { z } from "zod";
+
+import prisma from "./lib/prisma";
 
 export const authConfig: NextAuthConfig = {
   pages: {
@@ -15,12 +17,12 @@ export const authConfig: NextAuthConfig = {
       console.log({ auth });
       // const isLoggedIn = !!auth?.user;
 
-      // const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
+      // const isOnDashboard = nextUrl.pathname.startsWith('/dashboard');
       // if (isOnDashboard) {
       //   if (isLoggedIn) return true;
       //   return false; // Redirect unauthenticated users to login page
       // } else if (isLoggedIn) {
-      //   return Response.redirect(new URL("/dashboard", nextUrl));
+      //   return Response.redirect(new URL('/dashboard', nextUrl));
       // }
       return true;
     },
@@ -29,12 +31,13 @@ export const authConfig: NextAuthConfig = {
       if (user) {
         token.data = user;
       }
+
       return token;
     },
-    session({ session, token, user }) {
-      console.log({ session, token, user });
-      session.user = token.data as never;
 
+    session({ session, token }) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      session.user = token.data as any;
       return session;
     },
   },
@@ -46,22 +49,20 @@ export const authConfig: NextAuthConfig = {
           .object({ email: z.string().email(), password: z.string().min(6) })
           .safeParse(credentials);
 
-        if (!parsedCredentials.success) return null; //Si el formulario no es valido retorna null
+        if (!parsedCredentials.success) return null;
 
-        const { email, password } = parsedCredentials.data; //Extraemos la información
+        const { email, password } = parsedCredentials.data;
 
-        //Verificamos el correo
+        // Buscar el correo
         const user = await prisma.user.findUnique({
           where: { email: email.toLowerCase() },
         });
+        if (!user) return null;
 
-        if (!user) return null; //Si el correo no existe retorna null
+        // Comparar las contraseñas
+        if (!bcryptjs.compareSync(password, user.password)) return null;
 
-        //Comparar las contraseñas
-        if (!bcryptjs.compareSync(password, user.password)) return null; //Si las contraseñas no haces match retorna null
-
-        //Regresar el usuario sin el password
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // Regresar el usuario sin el password
         const { password: _, ...rest } = user;
 
         return rest;

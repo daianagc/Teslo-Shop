@@ -3,16 +3,12 @@
 import Image from "next/image";
 
 import { useCartStore } from "@/store";
-import { QuantitySelector } from "@/components";
+
 import { useEffect, useState } from "react";
-import Link from "next/link";
+
+import { currencyFormat } from "@/utils";
 
 export const ProductsInCart = () => {
-  const updateProductQuantity = useCartStore(
-    (state) => state.updateProductQuantity
-  );
-  const removeProduct = useCartStore((state) => state.removeProduct);
-
   const [loaded, setLoaded] = useState(false);
   const productsInCart = useCartStore((state) => state.cart);
 
@@ -43,26 +39,12 @@ export const ProductsInCart = () => {
           />
 
           <div>
-            <Link
-              className="hover:underline cursor-pointer"
-              href={`/product/${product.slug}`}
-            >
-              {product.size} - {product.title}
-            </Link>
-            <p>${product.price}</p>
-            <QuantitySelector
-              quantity={product.quantity}
-              onQuantityChanged={(quantity) =>
-                updateProductQuantity(product, quantity)
-              }
-            />
-
-            <button
-              onClick={() => removeProduct(product)}
-              className="underline mt-3"
-            >
-              Remover
-            </button>
+            <span>
+              {product.size} - {product.title} ({product.quantity})
+            </span>
+            <p className="font-bold">
+              {currencyFormat(product.price * product.quantity)}
+            </p>
           </div>
         </div>
       ))}

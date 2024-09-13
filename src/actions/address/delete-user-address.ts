@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 
 export const deleteUserAddress = async (userId: string) => {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const deleted = await prisma.userAddress.delete({
       where: { userId },
     });
