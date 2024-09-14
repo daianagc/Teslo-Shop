@@ -28,7 +28,7 @@ export const PlaceOrder = () => {
 
   const onPlaceOrder = async () => {
     setPlacingOrder(true);
-    // setErrorMessage("");
+    setErrorMessage("");
     // await sleep(2);
     const productsToOrder = cart.map((product) => ({
       productId: product.id,
@@ -108,7 +108,8 @@ export const PlaceOrder = () => {
           </span>
         </p>
 
-        <p className="text-red-500">{errorMessage}</p>
+        <span className="text-red-500">{errorMessage}</span>
+        <br />
 
         <button
           onClick={onPlaceOrder}

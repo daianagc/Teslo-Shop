@@ -6,11 +6,12 @@ import prisma from "@/lib/prisma";
 export const getOrderById = async (id: string) => {
   const session = await auth();
 
-  if (!session?.user)
+  if (!session?.user) {
     return {
       ok: false,
-      error: "Debe de estar autenticado",
+      message: "Debe de estar autenticado",
     };
+  }
 
   try {
     const order = await prisma.order.findUnique({
@@ -18,7 +19,6 @@ export const getOrderById = async (id: string) => {
       include: {
         OrderAddress: true,
         OrderItem: {
-          // Se puede hacer manualmente, pero puede que no sea tan simple
           select: {
             price: true,
             quantity: true,
@@ -28,6 +28,7 @@ export const getOrderById = async (id: string) => {
               select: {
                 title: true,
                 slug: true,
+
                 ProductImage: {
                   select: {
                     url: true,
@@ -41,12 +42,11 @@ export const getOrderById = async (id: string) => {
       },
     });
 
-    if (!order) throw `${id} not found`;
+    if (!order) throw `${id} no existe`;
 
-    // Verificar si la orden es del usuario autenticado
     if (session.user.role === "user") {
       if (session.user.id !== order.userId) {
-        throw `${id} not found`; // No tiene permiso para ver esta orden
+        throw `${id} no es de ese usuario`;
       }
     }
 
@@ -56,9 +56,10 @@ export const getOrderById = async (id: string) => {
     };
   } catch (error) {
     console.log(error);
+
     return {
       ok: false,
-      error: `${id} not found`,
+      message: "Orden no existe",
     };
   }
 };
