@@ -36,6 +36,7 @@ export const ProductsInCart = () => {
             }}
             alt={product.title}
             className="mr-5 rounded"
+            priority
           />
 
           <div>

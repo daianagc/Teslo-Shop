@@ -24,6 +24,7 @@ export const PageNotFound = () => {
           className="p-5 sm:p-0"
           width={550}
           height={550}
+          priority
         />
       </div>
     </div>

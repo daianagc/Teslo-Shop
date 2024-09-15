@@ -50,6 +50,7 @@ export default async function OrdersByIdPage({ params }: Props) {
                   }}
                   alt={item.product.title}
                   className="mr-5 rounded"
+                  priority
                 />
 
                 <div>
