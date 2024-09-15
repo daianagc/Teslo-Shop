@@ -15,3 +15,4 @@ export * from "./providers/Providers";
 export * from "./providers/Providers";
 export * from "./paypal/PayPalButton";
 export * from "./orders/OrderStatus";
+export * from "./product/product-image/ProductImage";

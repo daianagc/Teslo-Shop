@@ -1,9 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
+import prisma from "@/lib/prisma";
 
 import { auth } from "@/auth.config";
-import { Address, Size } from "@/interfaces";
-// import { Size } from '@/interfaces';
-import prisma from "@/lib/prisma";
+import type { Address, Size } from "@/interfaces";
 
 interface ProductToOrder {
   productId: string;
@@ -16,82 +16,83 @@ export const placeOrder = async (
   address: Address
 ) => {
   const session = await auth();
-  console.log({ session, productIds, address });
-
-  // Verificar que haya sesión de usuario
   const userId = session?.user.id;
-  if (!userId) return { ok: false, message: "No hay sesión de usuario" };
 
-  // Obtener productos de base de datos para cálculos iniciales
-  // de los montos del carrito de compras
-  // tengan presente que un cliente puede llevar dos productos con el mismo ID
-  // pero diferente talla
+  // Verificar sesión de usuario
+  if (!userId) {
+    return {
+      ok: false,
+      message: "No hay sesión de usuario",
+    };
+  }
+
+  // Obtener la información de los productos
+  // Nota: recuerden que podemos llevar 2+ productos con el mismo ID
   const products = await prisma.product.findMany({
-    select: {
-      id: true,
-      price: true,
-      inStock: true,
-    },
     where: {
       id: {
-        in: productIds.map((product) => product.productId),
+        in: productIds.map((p) => p.productId),
       },
     },
   });
 
-  // Calcular los monntos
-  const itemsInOrder = productIds.reduce(
-    (count, product) => count + product.quantity,
-    0
-  );
+  // Calcular los montos // Encabezado
+  const itemsInOrder = productIds.reduce((count, p) => count + p.quantity, 0);
 
+  // Los totales de tax, subtotal, y total
   const { subTotal, tax, total } = productIds.reduce(
     (totals, item) => {
       const productQuantity = item.quantity;
-      const product = products.find((p) => p.id === item.productId);
-      if (!product) throw new Error(`${item.productId} not found`);
+      const product = products.find((product) => product.id === item.productId);
+
+      if (!product) throw new Error(`${item.productId} no existe - 500`);
 
       const subTotal = product.price * productQuantity;
 
       totals.subTotal += subTotal;
       totals.tax += subTotal * 0.15;
       totals.total += subTotal * 1.15;
+
       return totals;
-      // return { subTotal: 0, tax: 0, total: 0 };
     },
     { subTotal: 0, tax: 0, total: 0 }
   );
 
+  // Crear la transacción de base de datos
   try {
-    // Crear transacción
-    // Porque el trabajo debe de ser secuencial y todo debe de tener éxito
-    // https://www.prisma.io/docs/guides/performance-and-optimization/prisma-client-transactions-guide#interactive-transactions
     const prismaTx = await prisma.$transaction(async (tx) => {
-      // Actualizar el Stock de los productos
-      const updatedProductsPromises = products.map(async (product) => {
-        const productQuantity = productIds.find(
-          (p) => p.productId === product.id
-        )?.quantity;
-        if (productQuantity === undefined) {
+      // 1. Actualizar el stock de los productos
+      const updatedProductsPromises = products.map((product) => {
+        //  Acumular los valores
+        const productQuantity = productIds
+          .filter((p) => p.productId === product.id)
+          .reduce((acc, item) => item.quantity + acc, 0);
+
+        if (productQuantity === 0) {
           throw new Error(`${product.id} no tiene cantidad definida`);
         }
 
         return tx.product.update({
           where: { id: product.id },
-          data: { inStock: product.inStock - productQuantity },
+          data: {
+            // inStock: product.inStock - productQuantity // no hacer
+            inStock: {
+              decrement: productQuantity,
+            },
+          },
         });
       });
 
       const updatedProducts = await Promise.all(updatedProductsPromises);
 
-      // Verificar que exista stock suficiente
+      // Verificar valores negativos en las existencia = no hay stock
       updatedProducts.forEach((product) => {
         if (product.inStock < 0) {
-          throw new Error(`${product.title} no tiene stock suficiente`);
+          throw new Error(`${product.title} no tiene inventario suficiente`);
         }
       });
 
-      // Crear orden
+      // 2. Crear la orden - Encabezado - Detalles
       const order = await tx.order.create({
         data: {
           userId: userId,
@@ -102,20 +103,23 @@ export const placeOrder = async (
 
           OrderItem: {
             createMany: {
-              data: productIds.map((product) => ({
-                quantity: product.quantity,
-                size: product.size,
-                productId: product.productId,
+              data: productIds.map((p) => ({
+                quantity: p.quantity,
+                size: p.size,
+                productId: p.productId,
                 price:
-                  products.find((p) => p.id === product.productId)?.price ?? 0,
+                  products.find((product) => product.id === p.productId)
+                    ?.price ?? 0,
               })),
             },
           },
         },
       });
 
-      // Crear la dirección de la orden
-      // ! recordar que en el place order no debe de venir el rememberAddress
+      // Validar, si el price es cero, entonces, lanzar un error
+
+      // 3. Crear la direccion de la orden
+      // Address
       const { country, ...restAddress } = address;
       const orderAddress = await tx.orderAddress.create({
         data: {
@@ -125,18 +129,22 @@ export const placeOrder = async (
         },
       });
 
-      return { order, updatedProducts, orderAddress };
+      return {
+        updatedProducts: updatedProducts,
+        order: order,
+        orderAddress: orderAddress,
+      };
     });
-
-    console.log({ prismaTx });
 
     return {
       ok: true,
       order: prismaTx.order,
-      prismaTx,
+      prismaTx: prismaTx,
     };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    return { ok: false, message: error.message };
+    return {
+      ok: false,
+      message: error?.message,
+    };
   }
 };
